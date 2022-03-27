@@ -5,6 +5,7 @@ const postsCMSRoute = require("./cms/postsCMS")
 const categoriesCMSRoute = require("./cms/categoriesCMS")
 const categoriesUserRoute = require("./categoriesUser")
 const commentRoute = require("./comments")
+const adminRoute = require("./admin")
 const passportConfig = require('../middlewares/PassPortMiddleware')
 const passport = require('passport')
 
@@ -22,6 +23,7 @@ function route(app) {
     app.use("/api/categories", categoriesUserRoute)
     app.use("/api/moderator/categories", categoriesCMSRoute)
     app.use("/api/moderator/posts", postsCMSRoute)
+    app.use("/api/admin", adminRoute)
 }
 
 module.exports = route
