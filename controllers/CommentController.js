@@ -2,17 +2,18 @@ const Comment = require('../models/Comment')
 const Post = require('../models/Post')
 
 class CommentController {
-    // [GET]
+    // [POST]
     async create(req, res) {
         if (req.userId) {
             const currentPost = await Post.findOne({ slug: req.params.slug })
             console.log(req.params.slug)
-            const newCommnet = new Comment(req.body)
-            newCommnet.post = currentPost
-            currentPost.comments.push(newCommnet._id)
+            const newCommet = new Comment(req.body)
+            newCommet.post = currentPost
+            newCommet.user = req.userId
+            currentPost.comments.push(newCommet._id)
             await currentPost.save()
             try {
-                const saveComment = await newCommnet.save()
+                const saveComment = await newCommet.save()
                 res.status(200).json(saveComment)
             } catch (error) {
                 res.status(500).json(error)
@@ -54,6 +55,24 @@ class CommentController {
             }
         } else {
             return res.status(500).json("You must login to react this post")
+        }
+    }
+
+    // [POST]
+    async replyComment(req, res) {
+        if (req.userId) {
+            const currentComment = await Comment.findById(req.params.id)
+            const nestedComment = new Comment(req.body)
+            currentComment.relies.push(nestedComment)
+            await currentComment.save()
+            try {
+                const saveComment = await nestedComment.save()
+                res.status(200).json(saveComment)
+            } catch (error) {
+                res.status(500).json(error)
+            }
+        } else {
+            return res.status(500).json("You must login to comment this post")
         }
     }
 }

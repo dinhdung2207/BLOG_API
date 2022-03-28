@@ -16,15 +16,15 @@ const CommentSchema = new mongoose.Schema({
         ref: 'Post'
     }],
 
-    commentIsApproved: {
-        type: Boolean,
-        default: false,
-    },
-
     likes: {
         type: Array,
         default: [],
     },
+
+    relies: {
+        type: Array,
+        default: [],
+    }
 
 }, { timestamps: true })
 

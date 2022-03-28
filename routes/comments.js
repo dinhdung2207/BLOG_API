@@ -11,4 +11,7 @@ router.delete('/:slug/comment/:id/delete',[AuthJwt.verifyToken] ,CommentControll
 // react a comment
 router.put('/:slug/comment/:id/like',[AuthJwt.verifyToken], CommentController.reactComment)
 
+// reply a comment
+router.post('/:slug/comment/:id/reply',[AuthJwt.verifyToken], CommentController.replyComment)
+
 module.exports = router
