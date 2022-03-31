@@ -1,6 +1,15 @@
 const express = require("express")
 const app = express()
+
+const http = require('http')
+const server = http.createServer(app)
+const {Server} = require('socket.io')
+const io = new Server(server)
+global.io = io
 const mongoose = require("mongoose")
+app.use(express.static("public"));
+app.set("view engine", "ejs");
+app.set("views", "./views");
 const dotenv = require("dotenv")
 const helmet = require("helmet")
 const morgan = require("morgan")
@@ -32,10 +41,31 @@ app.use(morgan("common"))
 route(app)
 
 app.get("/", (req, res) => {
-    res.send("Hello")
+    res.sendFile(__dirname + "/index.html")
 })
-
+/*
 app.listen(port, () => {
     console.log("Back-end server is running")
+})
+
+io.on('connection', function(client) {
+    console.log('Client connected')
+    client.on('join', function(data) {
+        console.log(data)
+    })
+})
+*/
+
+server.listen(port, () => {
+    console.log("Back-end server is running")
+})
+io.on('connection', (socket) => {
+    console.log('connected successfully : '+ socket.id)
+    socket.on('disconnect', () => {
+        console.log('disconnected '+ socket.id)
+    })
+    socket.on('on-comment', data => {
+        io.emit('user-comment', data)
+    })
 })
 

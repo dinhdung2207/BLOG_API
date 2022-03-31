@@ -5,16 +5,19 @@ class CommentController {
     // [POST]
     async create(req, res) {
         if (req.userId) {
+            const socket = global.io
             const currentPost = await Post.findOne({ slug: req.params.slug })
-            console.log(req.params.slug)
-            const newCommet = new Comment(req.body)
-            newCommet.post = currentPost
-            newCommet.user = req.userId
-            currentPost.comments.push(newCommet._id)
+            const newComment = new Comment(req.body)
+            newComment.post = currentPost
+            newComment.user = req.userId
+            currentPost.comments.push(newComment._id)
             await currentPost.save()
             try {
-                const saveComment = await newCommet.save()
+                const saveComment = await newComment.save()
                 res.status(200).json(saveComment)
+                socket.emit('on-comment', { 
+                    message: saveComment.body
+                })
             } catch (error) {
                 res.status(500).json(error)
             }

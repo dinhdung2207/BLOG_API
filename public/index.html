@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1> Chat! </h1>
+    <ul id="messages"></ul>
+    <form id="chat-form">
+        <input id="chat-mes" type="text">
+        <button id="send-chat">Gửi</button>
+    </form>
+
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+        const socket = io('http://localhost:3000')
+        const chatForm = document.querySelector('#chat-form')
+        const chatMes = document.querySelector('#chat-mes')
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault()
+            const message = chatMes.value
+            socket.emit('on-comment', { 
+                message: message
+            })
+            chatMes.value = ''
+        })
+        const messages = document.querySelector('#messages')
+        socket.on('user-comment', (message) => {
+            const chatItem = document.createElement('li') 
+            chatItem.textContent = message.message
+            messages.appendChild(chatItem)
+        })
+    </script>
+</body>
+
+</html>
