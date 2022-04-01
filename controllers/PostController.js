@@ -2,6 +2,7 @@ const Post = require('../models/Post')
 const User = require('../models/User')
 const Category = require('../models/Category')
 const PAGE_SIZE = 2
+const client = global.client
 
 class PostController {
     // [GET]
@@ -13,19 +14,59 @@ class PostController {
                 page = 1
             }
             var skip = (page - 1) * PAGE_SIZE
-            await Post.find({})
-                .skip(skip)
-                .limit(PAGE_SIZE)
-                .then(data => {
-                    res.status(200).json(data)
+            try {
+                client.get(page, async (err, posts) => {
+                    if (err) throw err
+
+                    if (posts) {
+                        res.status(200).send({
+                            posts: JSON.parse(posts),
+                            message: "data retrieved from the cache"
+                        })
+                    } else {
+                        await Post.find({})
+                            .skip(skip)
+                            .limit(PAGE_SIZE)
+                            .then(data => {
+                                client.setex(page, 600, JSON.stringify(data))
+                                res.status(200).send({
+                                    posts: data,
+                                    message: "cache miss"
+                                })
+                            })
+                            .catch(next)
+                    }
                 })
-                .catch(next)
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+
+            }
         } else {
-            await Post.find({})
-                .then(data => {
-                    res.status(200).json(data)
+            var searchTerm = "allPost"
+            try {
+                client.get(searchTerm, async (err, posts) => {
+                    if (err) throw err
+
+                    if (posts) {
+                        res.status(200).send({
+                            posts: JSON.parse(posts),
+                            message: "data retrieved from the cache"
+                        })
+                    } else {
+                        await Post.find({})
+                            .then(data => {
+                                client.setex(searchTerm, 600, JSON.stringify(data))
+                                res.status(200).send({
+                                    posts: data,
+                                    message: "cache miss"
+                                })
+                            })
+                            .catch(next)
+                    }
                 })
-                .catch(next)
+            } catch (error) {
+                res.status(500).send({ message: error.message });
+            }
         }
     }
 
@@ -113,11 +154,40 @@ class PostController {
         try {
             const post = await Post.findOne({ slug: req.params.slug }).populate([
                 { path: 'categories', select: 'title' },
-                { path: 'comments', select: 'body'},
+                { path: 'comments', select: 'body' },
             ])
             res.status(200).json(post)
         } catch (error) {
             res.status(500).json(error)
+        }
+    }
+
+    async showPostWithRedis(req, res) {
+        const searchTerm = req.params.slug
+        try {
+            client.get(searchTerm, async (err, post) => {
+                if (err) throw err
+
+                if (post) {
+                    res.status(200).send({
+                        post: JSON.parse(post),
+                        message: "data retrieved from the cache"
+                    })
+                } else {
+                    const post = await Post.findOne({ slug: req.params.slug }).populate([
+                        { path: 'categories', select: 'title' },
+                        { path: 'comments', select: 'body' },
+                    ])
+                    client.setex(searchTerm, "600", JSON.stringify(post))
+                    res.status(200).send({
+                        post: post,
+                        message: "cache miss"
+                    })
+                }
+            })
+        } catch (error) {
+            res.status(500).send({ message: error.message });
+
         }
     }
 
@@ -149,16 +219,36 @@ class PostController {
 
     // [GET]
     async getRelatedPost(req, res) {
-        const currentPost = await Post.findOne({ slug: req.params.slug }).populate('categories')
-        const listCategories = currentPost.categories
-        const result = []
-        for (let index = 0; index < listCategories.length; index++) {
-            result.push(await Post.findOne({ categories: listCategories[index].id  }).populate([
-                { path: 'categories', select: 'title' },
-                { path: 'comments', select: 'body'},
-            ]))
+        var relatedPost = req.params.slug + "/relatedPost"
+        try {
+            client.get(relatedPost, async (err, posts) => {
+                if (err) throw err
+
+                if (posts) {
+                    res.status(200).send({
+                        posts: JSON.parse(posts),
+                        message: "data retrieved from the cache"
+                    })
+                } else {
+                    const currentPost = await Post.findOne({ slug: req.params.slug }).populate('categories')
+                    const listCategories = currentPost.categories
+                    const result = []
+                    for (let index = 0; index < listCategories.length; index++) {
+                        result.push(await Post.findOne({ categories: listCategories[index].id }).populate([
+                            { path: 'categories', select: 'title' },
+                            { path: 'comments', select: 'body' },
+                        ]))
+                    }
+                    client.setex(relatedPost, 600, JSON.stringify(result))
+                    res.status(200).send({
+                        posts: result,
+                        message: "cache miss"
+                    })
+                }
+            })
+        } catch (error) {
+            res.status(500).send({ message: error.message });
         }
-        res.json(result)
     }
 }
 

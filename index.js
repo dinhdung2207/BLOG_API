@@ -1,5 +1,14 @@
 const express = require("express")
 const app = express()
+const fetch = require("node-fetch");
+const redis = require('redis');
+//const { search } = require('../routes/users');
+const client = redis.createClient(6379)
+client.on('error', (err) => {
+    console.log("Error " + err)
+});
+
+global.client = client
 
 const http = require('http')
 const server = http.createServer(app)
@@ -68,4 +77,3 @@ io.on('connection', (socket) => {
         io.emit('user-comment', data)
     })
 })
-

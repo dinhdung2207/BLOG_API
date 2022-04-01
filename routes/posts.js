@@ -13,7 +13,7 @@ router.put('/:slug', PostController.update)
 router.delete('/:slug', PostController.delete)
 
 // get a posts
-router.get('/:slug', PostController.show)
+router.get('/:slug', PostController.showPostWithRedis)
 
 // get all posts and pagination
 router.get('/', PostController.getAllPostsAndPagination)
