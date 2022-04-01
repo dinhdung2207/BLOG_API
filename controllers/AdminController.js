@@ -1,7 +1,5 @@
-const Post = require('../models/Post')
 const User = require('../models/User')
 const Role = require('../models/Role')
-const Category = require('../models/Category')
 
 class AdminController {
     // [DELETE]

@@ -16,7 +16,8 @@ verifyToken = (req, res, next) => {
         req.userId = decoded.id;
         next();
     });
-};
+}
+
 isAdmin = (req, res, next) => {
     User.findById(req.userId).exec((err, user) => {
         if (err) {
@@ -43,7 +44,8 @@ isAdmin = (req, res, next) => {
             }
         );
     });
-};
+}
+
 isModerator = (req, res, next) => {
     User.findById(req.userId).exec((err, user) => {
         if (err) {
@@ -70,10 +72,12 @@ isModerator = (req, res, next) => {
             }
         );
     });
-};
+}
+
 const AuthJwt = {
     verifyToken,
     isAdmin,
     isModerator
-};
+}
+
 module.exports = AuthJwt;

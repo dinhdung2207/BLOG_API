@@ -41,4 +41,5 @@ router.post('/:id/create-post',[AuthJwt.verifyToken], UserController.createUserP
 router.post('/:id/uploadImage', [AuthJwt.verifyToken], uploadImg, UserController.uploadImage)
 
 router.get('/secret', passport.authenticate('jwt', { session: false }), UserController.secret)
+
 module.exports = router

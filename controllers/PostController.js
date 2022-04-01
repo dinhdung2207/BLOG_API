@@ -1,5 +1,4 @@
 const Post = require('../models/Post')
-const User = require('../models/User')
 const Category = require('../models/Category')
 const PAGE_SIZE = 2
 const client = global.client

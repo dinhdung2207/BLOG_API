@@ -64,6 +64,7 @@ async function initialCategory() {
         }
     });
 }
+
 async function connect(){
     try {
         await mongoose.connect('mongodb://127.0.0.1:27017/rest-api-blog', {

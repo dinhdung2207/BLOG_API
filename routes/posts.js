@@ -1,6 +1,5 @@
 const router = require('express').Router()
 const PostController = require('../controllers/PostController')
-const CommentController = require('../controllers/CommentController')
 const AuthJwt = require("../middlewares/AuthJwt");
 
 // create a post
