@@ -28,9 +28,9 @@ class CommentController {
 
     // [DELETE]
     async delete(req, res) {
-        if (req.userId) {
+        const deleteComment = await Comment.findById(req.params.id)
+        if (req.userId == deleteComment.user._id.toString()) {
             try {
-                const deleteComment = Comment.findById(req.params.id)
                 await deleteComment.deleteOne()
                 res.status(200).json("Delete comment successfully")
             } catch (error) {

@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const Post = require('../models/Post');
 const Category = require('../models/Category')
 const upload = require('../middlewares/UploadMiddleware');
+const client = global.client
 
 class UserController {
     // [PUT]
@@ -32,11 +33,27 @@ class UserController {
     // [GET]
     async getUser(req, res) {
         try {
-            const user = await User.findOne({ id: req.params.id });
-            const { password, updatedAt, ...other } = user._doc;
-            res.status(200).json(other);
+            const searchTerm = req.params.id
+            client.get(searchTerm, async (err, other) => {
+                if (err) throw err
+
+                if (other) {
+                    res.status(200).send({
+                        other: JSON.parse(other),
+                        message: "data retrieved from the cache"
+                    })
+                } else {
+                    const user = await User.findOne({ id: req.params.id });
+                    const { password, updatedAt, ...other } = user._doc;
+                    client.setex(searchTerm, 600, JSON.stringify(other))
+                    res.status(200).send({
+                        other: other,
+                        message: "cache miss"
+                    })
+                }
+            })
         } catch (err) {
-            res.status(500).json(err);
+            res.status(500).json({ message: error.message });
         }
     }
 
@@ -46,9 +63,9 @@ class UserController {
             try {
                 const user = await User.findById(req.params.id)
                 const currentUser = await User.findById(req.userId)
-                if (!user.followers.includes(req.userId)) {
-                    await user.updateOne({ $push: { followers: req.userId } })
-                    await currentUser.updateOne({ $push: { followings: req.params.id } })
+                if (!user.followers.includes(currentUser.username)) {
+                    await user.updateOne({ $push: { followers: currentUser.username } })
+                    await currentUser.updateOne({ $push: { followings: user.username } })
                     res.stauts(200).json("This user has been followed")
                 } else {
                     res.status(403).json("You already follow this user")
@@ -67,9 +84,9 @@ class UserController {
             try {
                 const user = await User.findById(req.params.id)
                 const currentUser = await User.findById(req.userId)
-                if (user.followers.includes(req.userId)) {
-                    await user.updateOne({ $pull: { followers: req.userId } })
-                    await currentUser.updateOne({ $pull: { followings: req.params.id } })
+                if (user.followers.includes(currentUser.username)) {
+                    await user.updateOne({ $pull: { followers: currentUser.username } })
+                    await currentUser.updateOne({ $pull: { followings: user.username } })
                     res.status(200).json("You just unfollow this user")
                 } else {
                     res.status(403).json("You already followers this user")
@@ -84,8 +101,24 @@ class UserController {
 
     // [GET]
     async getUserPosts(req, res, next) {
-        const user = await User.findById(req.params.id).populate('posts')
-        return res.status(200).json({ posts: user.posts })
+        const searchTerm = req.params.id + "-posts"
+        try {
+            client.get(searchTerm, async (err, posts) => {
+                if(err) throw err
+
+                if(posts) {
+                    res.status(200).send({
+                        posts: JSON.parse(posts),
+                        message: "data retrieved from the cache"
+                    })
+                } else {
+                    const user = await User.findById(req.params.id).populate('posts')
+                    client.setex(searchTerm, 600, JSON.stringify(user.posts))
+                }
+            })
+        } catch (error) {
+            res.status(500).send({ message: error.message })
+        }
     }
 
     // [POST]
@@ -146,8 +179,8 @@ class UserController {
         return res.status(200).json({ resources: true })
     }
 
-    
-    // [GET]
+
+    // [POST]
     async uploadImage(req, res, next) {
         if (req.userId === req.params.id || req.body.isAdmin) {
             try {

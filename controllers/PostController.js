@@ -233,7 +233,7 @@ class PostController {
                     const listCategories = currentPost.categories
                     const result = []
                     for (let index = 0; index < listCategories.length; index++) {
-                        result.push(await Post.findOne({ categories: listCategories[index].id }).populate([
+                        result.push(await Post.find({ categories: listCategories[index].id }).populate([
                             { path: 'categories', select: 'title' },
                             { path: 'comments', select: 'body' },
                         ]))

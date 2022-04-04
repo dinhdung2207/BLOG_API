@@ -2,6 +2,7 @@ const express = require("express")
 const app = express()
 const redis = require('redis');
 const client = redis.createClient(6379)
+global.client = client
 const http = require('http')
 const server = http.createServer(app)
 const { Server } = require('socket.io')
@@ -21,7 +22,6 @@ database.connect()
 client.on('error', (err) => {
     console.log("Error " + err)
 });
-global.client = client
 global.io = io
 var corsOptions = {
     origin: "http://localhost:8081"
