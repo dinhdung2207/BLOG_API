@@ -104,9 +104,9 @@ class UserController {
         const searchTerm = req.params.id + "-posts"
         try {
             client.get(searchTerm, async (err, posts) => {
-                if(err) throw err
+                if (err) throw err
 
-                if(posts) {
+                if (posts) {
                     res.status(200).send({
                         posts: JSON.parse(posts),
                         message: "data retrieved from the cache"
@@ -130,7 +130,10 @@ class UserController {
         post.owner = user
         await post.save((err, post) => {
             if (err) {
-                res.status(500).send({ message: err });
+                res.status(500).send({
+                    status: "failure",
+                    message: err
+                });
                 return;
             }
             if (req.body.categories) {
@@ -146,26 +149,29 @@ class UserController {
                         post.categories = categories.map(category => category._id);
                         post.save(err => {
                             if (err) {
-                                res.status(500).send({ message: err });
+                                res.status(500).send({
+                                    message: err
+                                });
                                 return;
                             }
-                            res.send({ message: "Post was created successfully!" });
+                            res.status(200).send({
+                                status: "success",
+                                message: "Post was created successfully!",
+                                data: post
+                            });
                         });
                     }
                 );
             } else {
-                Category.findOne({ title: "laptrinh" }, (err, category) => {
+                post.save(err => {
                     if (err) {
                         res.status(500).send({ message: err });
                         return;
                     }
-                    post.categories = [category._id];
-                    post.save(err => {
-                        if (err) {
-                            res.status(500).send({ message: err });
-                            return;
-                        }
-                        res.send({ message: "Post was created successfully!" });
+                    res.status(200).send({
+                        status: "success",
+                        message: "Post was created successfully!",
+                        data: post
                     });
                 });
             }

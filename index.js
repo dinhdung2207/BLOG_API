@@ -1,20 +1,25 @@
 const express = require("express")
 const app = express()
+
 const redis = require('redis');
 const client = redis.createClient(6379)
 global.client = client
+
 const http = require('http')
 const server = http.createServer(app)
 const { Server } = require('socket.io')
 const io = new Server(server)
+
 const dotenv = require("dotenv")
 const helmet = require("helmet")
 const morgan = require("morgan")
 const route = require("./routes")
 const cors = require("cors")
 const db = require("./models")
+
 dotenv.config()
-const port = 3000
+
+const port = 5000
 const database = require('./config/db')
 
 database.connect()
@@ -32,19 +37,18 @@ app.set("views", "./views");
 
 app.use(express.static("public"));
 app.use(cors(corsOptions));
-app.use(express.static('public'));
 app.use(express.json())
 app.use(helmet())
 app.use(morgan("common"))
-
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+  });
 route(app)
 
 app.get("/", (req, res) => {
     res.sendFile(__dirname + "/index.html")
-})
-/*
-app.listen(port, () => {
-    console.log("Back-end server is running")
 })
 
 io.on('connection', function(client) {
@@ -53,7 +57,7 @@ io.on('connection', function(client) {
         console.log(data)
     })
 })
-*/
+
 server.listen(port, () => {
     console.log("Back-end server is running")
 })

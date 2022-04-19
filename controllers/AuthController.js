@@ -51,7 +51,10 @@ class AuthController {
                                 res.status(500).send({ message: err });
                                 return;
                             }
-                            res.send({ message: "User was registered successfully!" });
+                            res.send({
+                                status: "success",
+                                message: "User was registered successfully!"
+                            });
                         });
                     }
                 );

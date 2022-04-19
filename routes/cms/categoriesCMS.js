@@ -10,9 +10,9 @@ router.get('/', [AuthJwt.verifyToken, AuthJwt.isModerator], CategoryController.i
 router.post('/create',[AuthJwt.verifyToken, AuthJwt.isModerator], CategoryController.create)
 
 // Delete category
-router.delete('/:title/delete',[AuthJwt.verifyToken, AuthJwt.isModerator], CategoryController.delete)
+router.delete('/:id/delete',[AuthJwt.verifyToken, AuthJwt.isModerator], CategoryController.delete)
 
 // update categoru
-router.put('/:title/update',[AuthJwt.verifyToken, AuthJwt.isModerator], CategoryController.update)
+router.put('/:id/update',[AuthJwt.verifyToken, AuthJwt.isModerator], CategoryController.update)
 
 module.exports = router

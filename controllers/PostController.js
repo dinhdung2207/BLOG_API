@@ -24,6 +24,9 @@ class PostController {
                         })
                     } else {
                         await Post.find({})
+                            .populate([
+                                { path: 'categories', select: 'title' },
+                                { path: 'owner', select: 'username' },])
                             .skip(skip)
                             .limit(PAGE_SIZE)
                             .then(data => {
@@ -53,6 +56,9 @@ class PostController {
                         })
                     } else {
                         await Post.find({})
+                            .populate([
+                                { path: 'categories', select: 'title' },
+                                { path: 'owner', select: 'username' },])
                             .then(data => {
                                 client.setex(searchTerm, 600, JSON.stringify(data))
                                 res.status(200).send({
@@ -95,7 +101,10 @@ class PostController {
                                 res.status(500).send({ message: err });
                                 return;
                             }
-                            res.send({ message: "Post was created successfully!" });
+                            res.status(200).send({
+                                message: "Post was created successfully!",
+                                post: post
+                            });
                         });
                     }
                 );
@@ -176,6 +185,7 @@ class PostController {
                     const post = await Post.findOne({ slug: req.params.slug }).populate([
                         { path: 'categories', select: 'title' },
                         { path: 'comments', select: 'body' },
+                        { path: 'owner', select: 'username' },
                     ])
                     client.setex(searchTerm, "600", JSON.stringify(post))
                     res.status(200).send({

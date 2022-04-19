@@ -6,6 +6,10 @@ const PostSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    body: {
+        type: String,
+        max: 3000,
+    },
     desc: {
         type: String,
         max: 500,
@@ -34,10 +38,10 @@ const PostSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
-    owner: [{
+    owner: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
-    }]
+    }
 }, { timestamps: true })
 
 mongoose.plugin(slug)
